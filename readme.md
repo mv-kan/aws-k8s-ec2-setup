@@ -10,10 +10,11 @@ terraform output private_key
 
 ## 1. Add worker to cluster 
 
-connect to master ec2 and in `/var/log/user-data.log` you will find kubeadm join command that you need to paste to worker ec2
+connect to master ec2 and in `/var/log/user-data.log` you will find `kubeadm join` command that you need to paste to worker ec2
 
 paste this into master ec2 
 ```
+sudo su 
 kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
 ```
 
@@ -21,6 +22,7 @@ kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
 
 In master ec2
 ```
+sudo su 
 # Add kubernetes-dashboard repository
 helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
 # Deploy a Helm Release named "kubernetes-dashboard" using the kubernetes-dashboard chart
@@ -54,4 +56,10 @@ spec:
 then paste public ip address of worker into browser like that
 ```
 https://<public ip for worker ec2>:32443
+```
+
+in master ec2 
+```
+kubectl create token -n kube-system default
+# and paste output to dashboard in browser 
 ```
