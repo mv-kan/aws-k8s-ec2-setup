@@ -1,9 +1,10 @@
+
 resource "aws_vpc" "main" {
   cidr_block       = "10.0.0.0/16"
   instance_tenancy = "default"
 
   tags = {
-    Name = "main"
+    Name = "${var.name_prefix}-main"
   }
 }
 
@@ -11,29 +12,29 @@ resource "aws_vpc" "main" {
 resource "aws_internet_gateway" "ig" {
   vpc_id = "${aws_vpc.main.id}"
   tags = {
-    Name        = "subnet-a-igw"
+    Name = "${var.name_prefix}-subnet-a-igw"
   }
 }
 
 /* Elastic IP for NAT */
 resource "aws_eip" "nat_eip" {
-  vpc        = true
+
   depends_on = [aws_internet_gateway.ig]
 }
 /* NAT */
 resource "aws_nat_gateway" "nat" {
   allocation_id = "${aws_eip.nat_eip.id}"
-  subnet_id     = "${element(aws_subnet.a.*.id, 0)}"
+  subnet_id     = "${aws_subnet.a.id}"
   depends_on    = [aws_internet_gateway.ig]
   tags = {
-    Name = "nat" 
+    Name = "${var.name_prefix}-nat" 
   }
 }
 
 resource "aws_route_table" "public" {
   vpc_id = "${aws_vpc.main.id}"
   tags = {
-    Name = "public-route-table"
+    Name = "${var.name_prefix}-public-route-table"
   }
 }
 resource "aws_route" "public_internet_gateway" {
@@ -47,8 +48,13 @@ resource "aws_subnet" "a" {
   cidr_block = "10.0.0.0/24"
   map_public_ip_on_launch = true
   tags = {
-    Name = "subnet_a"
+    Name = "${var.name_prefix}-subnet_a"
   }
+}
+
+resource "aws_route_table_association" "a" {
+  subnet_id      = aws_subnet.a.id
+  route_table_id = aws_route_table.public.id
 }
 
 resource "aws_subnet" "b" {
@@ -56,6 +62,6 @@ resource "aws_subnet" "b" {
   cidr_block = "10.0.1.0/24"
 
   tags = {
-    Name = "subnet_b"
+    Name = "${var.name_prefix}-subnet_b"
   }
 }
